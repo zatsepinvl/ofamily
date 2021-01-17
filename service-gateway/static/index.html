@@ -1,0 +1,167 @@
+<!doctype html>
+<html class="no-js" lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <base href="/">
+    <title>O`Family Gateway UI</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="ui/dist/vis-network.min.css">
+    <link rel="stylesheet" href="ui/main.css">
+    <script src="ui/dist/jquery.min.js"></script>
+    <script src="ui/dist/vis-network.min.js"></script>
+</head>
+<body onload="onload()">
+<div id="network" class="network"></div>
+<div class="content">
+    <p>
+        O`Family topology network
+    </p>
+    <table id="node-params-table" class="node-params-table">
+        <tbody>
+        <tr>
+            <td>service</td>
+            <td id="node_id" class="value"></td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td id="node_type" class="value"></td>
+        </tr>
+        <tr>
+            <td>url</td>
+            <td id="node_url" class="value"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+<script>
+    const storage = {};
+    const maxInt64 = Math.pow(2, 31) - 1;
+    let network;
+
+    function onload() {
+        $("#node-params-table").hide();
+        load();
+        //setInterval(load, 3000);
+    }
+
+    function load() {
+        var ajaxTime = new Date().getTime();
+        $.get('/topology', function (entry) {
+            entry.connections[0].latency = new Date().getTime() - ajaxTime;
+            const data = read(entry);
+            draw({
+                nodes: new vis.DataSet(data.nodes),
+                edges: new vis.DataSet(data.edges)
+            });
+        })
+    }
+
+    function read(entry, data) {
+        if (!data) {
+            data = {
+                nodes: [],
+                edges: []
+            };
+        }
+        const color = !(maxInt64 - 1000 <= entry.latency && entry.latency <= maxInt64) ?
+            entry.type === 'service' ?
+                '#4CAF50'
+                :
+                '#00BCD4'
+            :
+            '#999999';
+        if (data.nodes.findIndex(function (element) {
+                return element.id === entry.service;
+            }) === -1) {
+            data.nodes.push({
+                id: entry.service,
+                label: entry.service,
+                color: color,
+                data: entry
+            });
+            storage[entry.service] = {
+                name: entry.service,
+                url: entry.url,
+                type: entry.type,
+            };
+        }
+        if (entry.connections) {
+            entry.connections.sort(function (a, b) {
+                if (a.service < b.service) {
+                    return -1;
+                }
+                return 1;
+            }).forEach(function (value) {
+                read(value, data);
+                const disconnected = maxInt64 - 1000 <= value.latency && value.latency <= maxInt64;
+                data.edges.push({
+                    from: entry.service,
+                    to: value.service,
+                    label: (!disconnected ? value.latency : "break"),
+                    color: {inherit: 'to'},
+                    dashes: disconnected
+                });
+            })
+        }
+        return data;
+    }
+
+    function init() {
+
+    }
+
+    function draw(data) {
+        const container = document.getElementById('network');
+        const options = {
+            height: '100%',
+            width: '100%',
+            nodes: {
+                shape: 'box',
+                size: 0,
+                margin: 8,
+                font: {
+                    size: 12
+                }
+            },
+            edges: {
+                smooth: {
+                    forceDirection: false
+                },
+                font: {
+                    size: 12,
+                    align: 'top'
+                }
+            },
+            layout: {
+                hierarchical: {
+                    sortMethod: 'directed',
+                    nodeSpacing: 150
+                },
+                randomSeed: 2
+            },
+            physics: {
+                enabled: false
+            },
+            interaction: {
+                hover: false
+            },
+        };
+        network = new vis.Network(container, data, options);
+        network.on("click", function (params) {
+            if (params.nodes[0]) {
+                const entry = storage[params.nodes[0]];
+                $("#node_id").html(entry.name);
+                $("#node_type").html(entry.type);
+                $("#node_url").html(entry.url);
+                $("#node-params-table").show();
+            }
+            else {
+                $("#node-params-table").hide();
+            }
+        });
+    }
+</script>
+</html>

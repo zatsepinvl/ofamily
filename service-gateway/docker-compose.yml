@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  service-gateway:
+    image: ${IMAGE_NAME:-ofamily/service-gateway}
+    build: .
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      - GIN_MODE=release
+      - DISCOVERY_URL=http://service-discovery:8888

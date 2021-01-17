@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  service-webapp:
+    build: .
+    image: ${IMAGE_NAME}
+    restart: always
+    environment:
+      - GATEWAY_URI=http://service-gateway:8000
+    ports:
+      - 80:80

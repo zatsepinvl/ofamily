@@ -1,0 +1,21 @@
+version: '3'
+
+volumes:
+  mongo-account-db:
+
+services:
+  mongo-account:
+    image: mongo
+    volumes:
+      - mongo-account-db:/data/db
+
+  service-account:
+      image: ${IMAGE_NAME:-ofamily/service-account}
+      build: .
+      restart: always
+      links:
+        - mongo-account
+      environment:
+        - MONGO_DB_URI=mongodb://mongo-account:27017/ofamily
+        - DISCOVERY_URI=http://service-discovery:8888
+        - RABBITMQ_URI=amqp://rabbitmq:rabbitmq@rabbitmq:5672/ofamily

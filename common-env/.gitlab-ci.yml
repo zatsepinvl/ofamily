@@ -1,0 +1,20 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: debian:jessie
+  script:
+    - which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "${CLOUD_SSH_PRIVATE_KEY}")
+    - mkdir -p ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - ssh ${CLOUD_SSH} "rm -rf $CI_PROJECT_NAME"
+    - ssh ${CLOUD_SSH} "git clone $CI_REPOSITORY_URL $CI_PROJECT_NAME"
+    - ssh ${CLOUD_SSH} "cd $CI_PROJECT_NAME; ls -l"
+    - ssh ${CLOUD_SSH} "cd $CI_PROJECT_NAME; docker-compose config; docker-compose pull; docker-compose up -d"
+  only:
+    - master
+  
+

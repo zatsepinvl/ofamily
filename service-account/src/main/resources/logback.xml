@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%-5level] %logger{15} - %msg%n%rEx</pattern>
+            <immediateFlush>false</immediateFlush>
+        </encoder>
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <!-- ToDo: DOES NOT WORK - WHAT IS FUCKING WRONG WITH YOU ?!?!? -->
+    <logger name="reactor.ipc.netty" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+
+</configuration>

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  redis-discovery:
+    image: redis
+    ports:
+      - 6379:6379
+
+  service-discovery:
+    image: ${IMAGE_NAME:-ofamily/service-discovery}
+    build: .
+    restart: always
+    links:
+      - redis-discovery
+    environment:
+      - GIN_MODE=release
+      - REDIS_URL=redis-discovery:6379

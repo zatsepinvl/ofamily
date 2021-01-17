@@ -1,0 +1,32 @@
+stages:
+  - push
+  - deploy
+
+push-docker:
+  stage: push
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker inspect $CI_REGISTRY_IMAGE
+    - docker push "$CI_REGISTRY_IMAGE"
+  only:
+    - master
+
+deploy:
+  stage: deploy
+  image: debian:jessie
+  script:
+    - which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "${CLOUD_SSH_PRIVATE_KEY}")
+    - mkdir -p ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - ssh ${CLOUD_SSH} "rm -rf $CI_PROJECT_NAME"
+    - ssh ${CLOUD_SSH} "git clone $CI_REPOSITORY_URL $CI_PROJECT_NAME"
+    - ssh ${CLOUD_SSH} "cd $CI_PROJECT_NAME; ls -l"
+    - ssh ${CLOUD_SSH} "cd $CI_PROJECT_NAME; export IMAGE_NAME=$CI_REGISTRY_IMAGE; docker-compose config; docker-compose pull; docker-compose up -d"
+  only:
+    - master

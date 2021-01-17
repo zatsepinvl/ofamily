@@ -1,0 +1,41 @@
+.content {
+    z-index: 2;
+    position: relative;
+}
+
+.network {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.node-params-table {
+    border-collapse: collapse;
+}
+
+.node-params-table td, .node-params-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.node-params-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/*.node-params-table tr:hover {
+    background-color: #ddd;
+}*/
+
+.node-params-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+
+.value {
+    font-size: 16px;
+}

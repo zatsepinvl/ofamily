@@ -1,0 +1,14 @@
+#Docker
+env
+.env
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+#Git
+.gitignore
+.gitattributes
+
+#Idea
+*.iml
+.idea

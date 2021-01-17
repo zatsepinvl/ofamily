@@ -1,0 +1,22 @@
+version: '3'
+
+volumes:
+  mongo-tree-db:
+
+services:
+  mongo-tree:
+    image: mongo
+    volumes:
+      - mongo-tree-db:/data/db
+
+  service-tree:
+    image: ${IMAGE_NAME:-ofamily/service-tree}
+    build: .
+    restart: always
+    links:
+      - mongo-tree
+    environment:
+      - GIN_MODE=release
+      - DISCOVERY_URL=http://service-discovery:8888
+      - MONGO_DB_URL=mongo-tree:27017/ofamily
+      - RABBITMQ_URI=amqp://rabbitmq:rabbitmq@rabbitmq:5672/ofamily

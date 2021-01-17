@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  service-static:
+    image: ${IMAGE_NAME:-ofamily/service-static}
+    build: .
+    restart: always
+    environment:
+      - GIN_MODE=release
+      - DISCOVERY_URL=http://service-discovery:8888
